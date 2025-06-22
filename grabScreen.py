@@ -6,11 +6,10 @@ import mss
 from directkeys import PressKey, ReleaseKey, W, A, S, D
 
 sct = mss.mss()
-monitor = {"top": 100, "left": 0, "width": 800, "height": 450}
+monitor = {"top": 200, "left": 0, "width": 800, "height": 475}
 
 def process_img(original_img):
     processed_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
-    processed_img = cv2.Canny(processed_img, threshold1=200, threshold2=300)
     return processed_img
 
 def main():
@@ -34,6 +33,7 @@ def main():
         processed_frame = process_img(frame)
         print("Time taken to grab one screen frame in seconds:", {time.time()-last_time})
         last_time = time.time() 
+        print("Shape of processed image:", processed_frame.shape) # currently its at (475, 800)
         cv2.imshow("processed window", processed_frame)
         # cv2.imshow("window", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
