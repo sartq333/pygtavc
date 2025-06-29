@@ -9,3 +9,5 @@ i was also thinking to intergrate the with some vlm and kind of like we would fe
 i'll also try to document the journey of this project:
 
 [part 1](https://medium.com/@sartq_3/python-playing-gta-again-part-1-fc8116336b54)
+
+[part 2](https://medium.com/@sartq_3/python-playing-gta-again-part-2-fcf28003cc31)
