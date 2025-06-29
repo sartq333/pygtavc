@@ -1,27 +1,14 @@
 # https://stackoverflow.com/questions/50963283/opencv-imshow-doesnt-need-convert-from-bgr-to-rgb
 import os
-os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['MKL_NUM_THREADS'] = '1'
-
 import numpy as np
 import cv2
 import time
 import mss
 from ultralytics import YOLO
-from directkeys import PressKey, ReleaseKey, W, A, S, D
-
-cv2.setUseOptimized(False)
-cv2.setNumThreads(1)
+from directkeys import PressKey, ReleaseKey, PressMouse, ReleaseMouse, W, A, S, D
 
 sct = mss.mss()
 monitor = {"top": 200, "left": 0, "width": 800, "height": 475}
-
-# try:
-#    model = YOLO("yolov8n.pt")
-#    model.to("cpu")
-#    model.predict(np.zeros((320, 320, 3), dtype=np.uint8))
-# except Exception as e:
-#    print(f"Error {e} loading up model.")
 
 def detect_objects(model, img):
     start = time.time()
@@ -48,28 +35,27 @@ def main():
     cv2.namedWindow("processed window", cv2.WINDOW_NORMAL)
     print("Window for cv2 initialized.", flush=True)
     
+    print("Load YOLO model before.", flush=True)
     model = YOLO("models/yolov8n.pt")
     model.to("cpu")
-
-    for i in list(range(4))[::-1]:
-        print(i+1)
-        time.sleep(1)
+    print("YOLO model loaded, after.")
 
     last_time = time.time()
-    # flag = True
+    flag = True
     frame_count = 0
 
     while True:
-       
-       # if flag:
-       #     for i in range(4):    
-       #         PressKey(W)
-       #         time.sleep(1)
-       #         ReleaseKey(W)
-       #         flag = False
+        if flag:
+            for i in range(4):    
+                PressMouse(1)
+                time.sleep(1)
+                ReleaseMouse(1)
+                flag = False
         
+        print("grab image from monitor before.", flush=True)
         sct_img = sct.grab(monitor)
         frame = np.array(sct_img)[:, :, :3]
+        print("grab image from monitor after.", flush=True)
         
         print("process_img function is going to get called.", flush=True)
         processed_frame = process_img(frame)

@@ -18,6 +18,15 @@ def PressKey(key):
 def ReleaseKey(key):
     subprocess.run(["xdotool", "keyup", key])
 
+def MoveMouse(x, y):
+    subprocess.run(["xdotool", "mousemove", str(x), str(y)])
+
+def PressMouse(button): 
+    subprocess.run(["xdotool", "mousedown", str(button)])
+
+def ReleaseMouse(button):
+    subprocess.run(["xdotool", "mouseup", str(button)])
+
 if __name__ == '__main__':
     PressKey(0x11)
     time.sleep(1)
