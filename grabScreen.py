@@ -38,24 +38,30 @@ def main():
     print("Load YOLO model before.", flush=True)
     model = YOLO("models/yolov8n.pt")
     model.to("cpu")
-    print("YOLO model loaded, after.")
+    print("YOLO model loaded, after.", flush=True)
 
     last_time = time.time()
     flag = True
     frame_count = 0
 
     while True:
-        if flag:
-            for i in range(4):    
-                PressMouse(1)
-                time.sleep(1)
-                ReleaseMouse(1)
-                flag = False
         
+        # first thing which should happen while entering inside this while loop 
+        # is screen grabbing, after that other operations, whatever they might be
+        # should be happening.
         print("grab image from monitor before.", flush=True)
         sct_img = sct.grab(monitor)
         frame = np.array(sct_img)[:, :, :3]
         print("grab image from monitor after.", flush=True)
+
+        if flag:
+            for _ in range(4):
+                print("Mouse click pressed.", flush=True)    
+                PressMouse(1)
+                time.sleep(1)
+                ReleaseMouse(1)
+                print("Mouse click released.", flush=True)
+                flag = False
         
         print("process_img function is going to get called.", flush=True)
         processed_frame = process_img(frame)
@@ -78,7 +84,7 @@ def main():
         
         cv2.imshow("processed window", processed_frame)
         
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
             sct.close()
             break
