@@ -56,13 +56,24 @@ def draw_person_boxes(processed_img, boxes):
         cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2) # red, nearest one
     return processed_img, second_nearest_box_idx
 
-def shoot(processed_img, boxes, second_nearest_box_idx):
+def shoot(processed_img, boxes, second_nearest_box_idx, player_center_x=160, player_center_y=160):
     if second_nearest_box_idx is not None:
         x1, y1, x2, y2 = boxes[second_nearest_box_idx].xyxy[0].cpu().numpy()
         cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2) # blue, this will get hit
         # now since the coordinates of this is know then we can move the player coordinate location from whatever direction 
         # it is in to the direction of center of [(x1, y1) and (x2, y2)] with help of "W", "A", "S" and "D" key bindings (mouse movement is not working in the game that's why keys)
-        # once the player is alinged with the desired coordinate location, we can start shooting
+        # once the player is aligned with the desired coordinate location, we can start shooting
+        
+        # setting up coordiantes where we want the player coordinate direction to be 
+        target_center_x = (x1+x2)/2
+        target_center_y = y1 # for headshot otherwise this can also be (y1+y2)/2
+
+        offset_x = target_center_x-IMG_CENTER_X
+        offset_y = target_center_y-IMG_CENTER_Y
+
+        # key problem faced here:
+        # this assumes (offset_x and offset_y) that player would be in the center but his orientation in the center can be different, like it can be in any direction
+
     return processed_img
 
 def main():
@@ -85,9 +96,9 @@ def main():
             # (the if condition is written here and not inside the functions because it's benificial that we can use boxes for both draw_person_boxes
             # and shoot function, and don't have to unpack boxes from result inside them)
             boxes = result[0].boxes
-            processed_img, second_nearest_box_idx = draw_person_boxes(processed_img, result) # if object (person, in this case) is detected in 
+            processed_img, second_nearest_box_idx = draw_person_boxes(processed_img, boxes) # if object (person, in this case) is detected in 
                                                                     # the frame/image then draw a rectangle around it
-            processed_img = shoot(processed_img, boxes, second_nearest_box_idx)
+            processed_img = shoot(processed_img, boxes, second_nearest_box_idx, 160, 160)
         
         cv2.imshow("object_detection window", processed_img)
         
