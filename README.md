@@ -1,6 +1,6 @@
 # pygtavc
 
-![image](https://github.com/user-attachments/assets/a014978f-1d83-42bf-b3ce-2b5ca64a3971)
+![image](https://github.com/user-attachments/assets/38ccbf7e-3f51-4352-adec-2ac229b72d86)
 
 trying to automate gta vice city via python. this project is majorly going to be the reimplementation of this series by [sentdex](https://www.youtube.com/playlist?list=PLQVvvaa0QuDeETZEOy4VdocT7TOjfSA8a), although some modifications are there since i'm doing this project on ubuntu :). 
 
