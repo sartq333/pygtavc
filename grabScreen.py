@@ -27,13 +27,13 @@ def draw_person_boxes(processed_img, result):
     if result is not None: # check if any object is detected
         boxes = result[0].boxes
         for box in boxes:
-            if int(box.cls)==0:
+            if int(box.cls)==0: # 0 indicates "person" class, refer this: https://stackoverflow.com/questions/77477793/class-ids-and-their-relevant-class-names-for-yolov8-model
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
                 center_x = (x1+x2)//2
                 center_y = (y1+y2)//2
                 distance = math.sqrt((center_x-IMG_CENTER_X)**2 + (center_y-IMG_CENTER_Y)**2)
                 if distance<PLAYER_AREA_DISTANCE: # if the player itself is detected then ignore it
-                    continue
+                    continue                      # (assumption is that player will always be in the center of the image/screen)
                 cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
     return processed_img
 
