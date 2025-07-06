@@ -18,6 +18,13 @@ def PressKey(key):
 def ReleaseKey(key):
     subprocess.run(["xdotool", "keyup", key])
 
+def MoveMouseRelative(dx, dy):
+    print("move mouse relative")
+    if dx < 0 or dy < 0:
+        subprocess.run(["xdotool", "mousemove_relative", "--", str(dx), str(dy)])
+    else:
+        subprocess.run(["xdotool", "mousemove_relative", str(dx), str(dy)])
+
 def MoveMouse(x, y):
     subprocess.run(["xdotool", "mousemove", str(x), str(y)])
 
