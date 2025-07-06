@@ -27,8 +27,10 @@ def draw_person_boxes(processed_img, result):
     if result is not None: # check if any object is detected
         boxes = result[0].boxes
         nearest_person_distance = float("inf")
+        second_nearest_person_distance = float("inf")
         idx = 0
         box_idx = None
+        second_box_idx = None
 
         for box in boxes:
             if int(box.cls)==0: # 0 indicates "person" class, refer this: https://stackoverflow.com/questions/77477793/class-ids-and-their-relevant-class-names-for-yolov8-model
@@ -41,16 +43,23 @@ def draw_person_boxes(processed_img, result):
                     continue                      # (assumption is that player will always be in the center of the image/screen)
                 
                 if distance_from_player<nearest_person_distance:
+                    second_nearest_person_distance = nearest_person_distance
+                    second_box_idx = box_idx
                     nearest_person_distance = distance_from_player
                     box_idx = idx
                 
                 cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
             idx += 1
 
+        # now one possible thing which can be done is that instead of shooting the nearest person 
+        # (since it can be player itself also)  we can shoot the second nearest person
         if box_idx is not None:
             # redraw the nearest person with different color (red) to identify him
             x1, y1, x2, y2 = boxes[box_idx].xyxy[0].cpu().numpy()
-            cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+            cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2) # red, nearest one
+        if second_box_idx is not None:
+            x1, y1, x2, y2 = boxes[second_box_idx].xyxy[0].cpu().numpy()
+            cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2) # blue, this will get hit
     
     return processed_img
 
