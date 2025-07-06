@@ -13,6 +13,7 @@ IMG_WIDTH = 320
 IMG_HEIGHT = 320
 IMG_CENTER_X = IMG_WIDTH//2
 IMG_CENTER_Y = IMG_HEIGHT//2
+PLAYER_AREA_DISTANCE = 32 # this is a variable, try tinkering with it
 
 def process_img(original_img):
     processed_img = cv2.resize(original_img, (320, 320)) # resizing the original feed coming from game, all the
@@ -28,6 +29,11 @@ def draw_person_boxes(processed_img, result):
         for box in boxes:
             if int(box.cls)==0:
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                center_x = (x1+x2)//2
+                center_y = (y1+y2)//2
+                distance = math.sqrt((center_x-IMG_CENTER_X)**2 + (center_y-IMG_CENTER_Y)**2)
+                if distance<PLAYER_AREA_DISTANCE: # if the player itself is detected then ignore it
+                    continue
                 cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
     return processed_img
 
