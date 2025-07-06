@@ -13,7 +13,7 @@ IMG_WIDTH = 320
 IMG_HEIGHT = 320
 IMG_CENTER_X = IMG_WIDTH//2
 IMG_CENTER_Y = IMG_HEIGHT//2
-PLAYER_AREA_DISTANCE = 32 # this is a variable, try tinkering with it
+PLAYER_AREA_DISTANCE = 84 # this is a variable, try tinkering with it
 
 def process_img(original_img):
     processed_img = cv2.resize(original_img, (320, 320)) # resizing the original feed coming from game, all the
@@ -26,15 +26,32 @@ def detect_objects(model, processed_img):
 def draw_person_boxes(processed_img, result):
     if result is not None: # check if any object is detected
         boxes = result[0].boxes
+        nearest_person_distance = float("inf")
+        idx = 0
+        box_idx = None
+
         for box in boxes:
             if int(box.cls)==0: # 0 indicates "person" class, refer this: https://stackoverflow.com/questions/77477793/class-ids-and-their-relevant-class-names-for-yolov8-model
+                # use "box.conf[0]" to get confidence score of the "detected person" by the model
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
                 center_x = (x1+x2)//2
                 center_y = (y1+y2)//2
-                distance = math.sqrt((center_x-IMG_CENTER_X)**2 + (center_y-IMG_CENTER_Y)**2)
-                if distance<PLAYER_AREA_DISTANCE: # if the player itself is detected then ignore it
+                distance_from_player = math.sqrt((center_x-IMG_CENTER_X)**2 + (center_y-IMG_CENTER_Y)**2)
+                if distance_from_player<PLAYER_AREA_DISTANCE: # if the player itself is detected then ignore it, not works perfectly at the moment
                     continue                      # (assumption is that player will always be in the center of the image/screen)
+                
+                if distance_from_player<nearest_person_distance:
+                    nearest_person_distance = distance_from_player
+                    box_idx = idx
+                
                 cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+            idx += 1
+
+        if box_idx is not None:
+            # redraw the nearest person with different color (red) to identify him
+            x1, y1, x2, y2 = boxes[box_idx].xyxy[0].cpu().numpy()
+            cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+    
     return processed_img
 
 def main():
