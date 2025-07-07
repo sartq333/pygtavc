@@ -28,7 +28,7 @@ def draw_person_boxes(processed_img, boxes):
     nearest_person_distance = float("inf")
     second_nearest_person_distance = float("inf")
     idx = 0
-    box_idx = None
+    nearest_box_idx = None
     second_nearest_box_idx = None
     for box in boxes:
         if int(box.cls)==0: # 0 indicates "person" class, refer this: https://stackoverflow.com/questions/77477793/class-ids-and-their-relevant-class-names-for-yolov8-model
@@ -42,19 +42,19 @@ def draw_person_boxes(processed_img, boxes):
             
             if distance_from_player<nearest_person_distance:
                 second_nearest_person_distance = nearest_person_distance
-                second_nearest_box_idx = box_idx
+                second_nearest_box_idx = nearest_box_idx
                 nearest_person_distance = distance_from_player
-                box_idx = idx
+                nearest_box_idx = idx
             
             cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         idx += 1
     # now one possible thing which can be done is that instead of shooting the nearest person 
     # (since it can be player itself also)  we can shoot the second nearest person
-    if box_idx is not None:
+    if nearest_box_idx is not None:
         # redraw the nearest person with different color (red) to identify him
-        x1, y1, x2, y2 = boxes[box_idx].xyxy[0].cpu().numpy()
+        x1, y1, x2, y2 = boxes[nearest_box_idx].xyxy[0].cpu().numpy()
         cv2.rectangle(processed_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2) # red, nearest one
-    return processed_img, second_nearest_box_idx
+    return processed_img, nearest_box_idx, second_nearest_box_idx
 
 def shoot(processed_img, boxes, second_nearest_box_idx, player_center_x=160, player_center_y=160):
     if second_nearest_box_idx is not None:
@@ -68,16 +68,44 @@ def shoot(processed_img, boxes, second_nearest_box_idx, player_center_x=160, pla
         target_center_x = (x1+x2)/2
         target_center_y = y1 # for headshot otherwise this can also be (y1+y2)/2
 
+        # just using PressKey(W) for 0.0001 seconds might possibly fix the issue faced here,
+        # since it would straighten up the orientation of the player (hypothesis, might NOT work, or might work, hehe)
+        # key problem faced here:
+        # this assumes (offset_x and offset_y) that player would be in the center but his orientation in the center can be different, like it can be in any direction
+        
         offset_x = target_center_x-IMG_CENTER_X
         offset_y = target_center_y-IMG_CENTER_Y
 
-        # key problem faced here:
-        # this assumes (offset_x and offset_y) that player would be in the center but his orientation in the center can be different, like it can be in any direction
+        # test by using PressKey(W) to fix orientation
+        PressKey(W)
+        time.sleep(0.0001)
+        ReleaseKey(W)
+
+        threshold = 10 # this needs to be tested properly
+
+        # for now i'm just focusing on horizontal alignment - also play around and test with the time.sleep present inside it
+        if abs(offset_x)>threshold:
+            if offset_x>0:
+                print(f"blue box detected at: {target_center_x, target_center_y}. moving right.", flush=True)
+                PressKey(D)
+                time.sleep(0.003)
+                ReleaseKey(D)
+            else:
+                print(f"blue box detected at: {target_center_x, target_center_y}. moving right.", flush=True)
+                PressKey(A)
+                time.sleep(0.003)
+                ReleaseKey(D)
+                
+            # it is assumed that the orientation/things are adjusted now, and we are good to shoot the person present in
+            # the blue bounding box 
+            PressMouse(1)
+            time.sleep(0.05)
+            ReleaseMouse(1)
 
     return processed_img
 
 def main():
-    cv2.namedWindow("object_detection window", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("object_detection window", cv2.WINDOW_NORMAL) 
     model = YOLO("models/yolov8n.pt")
     model.to("cpu")
 
@@ -96,8 +124,11 @@ def main():
             # (the if condition is written here and not inside the functions because it's benificial that we can use boxes for both draw_person_boxes
             # and shoot function, and don't have to unpack boxes from result inside them)
             boxes = result[0].boxes
-            processed_img, second_nearest_box_idx = draw_person_boxes(processed_img, boxes) # if object (person, in this case) is detected in 
+            processed_img, nearest_box_idx, second_nearest_box_idx = draw_person_boxes(processed_img, boxes) # if object (person, in this case) is detected in 
                                                                     # the frame/image then draw a rectangle around it
+            if second_nearest_box_idx is None:
+                second_nearest_box_idx = nearest_box_idx
+            
             processed_img = shoot(processed_img, boxes, second_nearest_box_idx, 160, 160)
         
         cv2.imshow("object_detection window", processed_img)
