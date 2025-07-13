@@ -13,7 +13,7 @@ def detect_objects(model, processed_img):
     result = model.predict(processed_img, imgsz=(320, 320), iou=0.7, verbose=False, conf=0.5, max_det=5)
     return result
 
-def draw_bounding_boxes(processed_img, object_number, boxes, IMG_CENTER_X, IMG_CENTER_Y):
+def draw_bounding_boxes(processed_img, object_number, boxes, MOUSE_SENSITIVITY, ANGULAR_SENSITIVITY, IMG_CENTER_X, IMG_CENTER_Y):
     # boxes = result[0].boxes
     nearest_person_distance = float("inf")
     idx = 0
@@ -66,11 +66,6 @@ def shoot(processed_img, boxes, box_idx, MOUSE_SENSITIVITY, ANGULAR_SENSITIVITY,
         offset_x = target_center_x-IMG_CENTER_X
         offset_y = target_center_y-IMG_CENTER_Y
 
-        # test by using PressKey(W) to fix orientation
-        PressKey(W)
-        # time.sleep(0.0001)
-        ReleaseKey(W)
-
         threshold = 5 # this needs to be tested properly
         theta = math.atan2(160-target_center_y, target_center_x-160)
         theta_degrees = math.degrees(theta)
@@ -80,21 +75,24 @@ def shoot(processed_img, boxes, box_idx, MOUSE_SENSITIVITY, ANGULAR_SENSITIVITY,
         
         # for now i'm just focusing on horizontal alignment - also play around and test with the time.sleep present inside it
         if abs(offset_x)>threshold:
+            # test by using PressKey(W) to fix orientation
+            PressKey(W)
+            time.sleep(0.0001)
+            ReleaseKey(W)
             if offset_x>0:
                 print(f"box which needs to be shot detected at: {target_center_x, target_center_y}. moving right.", flush=True)
                 PressKey(D)
-                time.sleep(holdout_time)
+                time.sleep(0.003)
                 ReleaseKey(D)
             else:
                 print(f"box which needs to be shot detected at: {target_center_x, target_center_y}. moving left.", flush=True)
                 PressKey(A)
-                time.sleep(holdout_time)
+                time.sleep(0.003)
                 ReleaseKey(A)
                 
             # it is assumed that the orientation/things are adjusted now, and we are good to shoot the person present in the red bouding box
             PressMouse(1)
-            # time.sleep(0.05)
-            time.sleep(1)
+            time.sleep(0.05)
             ReleaseMouse(1)
 
     return processed_img

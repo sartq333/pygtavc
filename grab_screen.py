@@ -43,9 +43,6 @@ def main():
             boxes = result[0].boxes
             processed_img, nearest_box_idx = draw_bounding_boxes(processed_img, object_number, boxes, MOUSE_SENSITIVITY, ANGULAR_SENSITIVITY, IMG_CENTER_X, IMG_CENTER_Y) # if object (person, in this case) is detected in 
                                                                     # the frame/image then draw a rectangle around it
-            display_processed_img = cv2.resize(processed_img, (800, 275))
-            cv2.imshow("object_detection window", display_processed_img)
-
             processed_img = shoot(processed_img, boxes, nearest_box_idx, 160, 160)
         
         cv2.imshow("object_detection window", processed_img)
